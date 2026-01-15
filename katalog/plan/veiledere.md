@@ -15,6 +15,10 @@ HTML-visning av [RDF Turtle ressurs](veiledere.ttl) / Arkitektum AS
 <h2 id="">Veiledere for arealplanlegging</h2>
 
 <style>
+@import url("https://altinncdn.no/fonts/inter/v4.1/inter.css");
+@import url("https://cdn.jsdelivr.net/npm/@digdir/designsystemet-css@1.9.0/dist/theme/designsystemet.css");
+@import url("https://cdn.jsdelivr.net/npm/@digdir/designsystemet-css@1.9.0/dist/src/index.css");
+
 .topic-nav {
   border: 1px solid #cdd6e0;
   border-radius: 6px;
@@ -51,6 +55,53 @@ HTML-visning av [RDF Turtle ressurs](veiledere.ttl) / Arkitektum AS
   font-weight: 400;
   white-space: nowrap;
 }
+.guide-search {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  max-width: 720px;
+}
+.guide-search__field {
+  display: grid;
+  gap: 0.35rem;
+}
+.guide-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 900px;
+  display: grid;
+  gap: 0.75rem;
+}
+.guide-list__item {
+  background: #fff;
+  border: 1px solid #d6dde6;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+}
+.guide-list__summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.guide-list__meta {
+  color: #465a6e;
+  margin-top: 0.35rem;
+}
+.guide-list__details {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+.guide-list__details dt {
+  font-weight: 600;
+}
+.guide-list__details dd {
+  margin: 0;
+  color: #1f2d3d;
+}
+.guide-list__details-row {
+  display: grid;
+  gap: 0.25rem;
+}
 </style>
 
 <section class="topic-nav" aria-labelledby="planfaglige-tema">
@@ -79,8 +130,21 @@ HTML-visning av [RDF Turtle ressurs](veiledere.ttl) / Arkitektum AS
   </ul>
 </section>
 
+<section class="guide-search" aria-labelledby="veiledere-sok">
+  <h3 class="ds-heading" data-size="xs" id="veiledere-sok">Sok i veiledere</h3>
+  <div class="guide-search__field">
+    <label class="ds-label" for="guide-search-input">Sok pa navn</label>
+    <input class="ds-input" id="guide-search-input" type="search" placeholder="Skriv inn navn" autocomplete="off">
+  </div>
+  <p class="ds-paragraph guide-list__meta" data-size="sm">
+    Viser <span id="guide-result-count">0</span> veiledere
+  </p>
+</section>
+
+<ul class="guide-list" id="guide-list" aria-live="polite"></ul>
+
 <script>
-(function () {
+document.addEventListener("DOMContentLoaded", function () {
   const themeMap = {
     "arealstrategi": ["fagtema/arealstrategi/"],
     "arkitektur-byggeskikk-estetikk": ["fagtema/arkitektur/"],
@@ -127,7 +191,112 @@ HTML-visning av [RDF Turtle ressurs](veiledere.ttl) / Arkitektum AS
     const count = counts.get(tema) || 0;
     el.textContent = `(${count})`;
   });
-})();
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const list = document.getElementById("guide-list");
+  const input = document.getElementById("guide-search-input");
+  const resultCount = document.getElementById("guide-result-count");
+  if (!list || !input || !resultCount) return;
+
+  const ignoreTitles = new Set([
+    "Direktoratet for byggkvalitet",
+    "Veiledere for arealplanlegging"
+  ]);
+
+  const guides = [];
+  const headings = Array.from(document.querySelectorAll("h2"));
+  headings.forEach((heading) => {
+    const titleText = heading.textContent.trim();
+    if (!titleText || ignoreTitles.has(titleText)) return;
+
+    let table = heading.nextElementSibling;
+    while (table && table.tagName !== "TABLE" && table.tagName !== "H2") {
+      table = table.nextElementSibling;
+    }
+    if (!table || table.tagName !== "TABLE") return;
+
+    const rows = Array.from(table.querySelectorAll("tr"));
+    const details = rows
+      .map((row) => row.querySelectorAll("td"))
+      .filter((cells) => cells.length >= 3)
+      .map((cells) => ({
+        label: cells[0].textContent.trim(),
+        valueHtml: cells[2].innerHTML.trim()
+      }))
+      .filter((item) => item.label && item.valueHtml);
+
+    const titleRow = details.find((item) => item.label.toLowerCase() === "navn");
+    const name = titleRow ? titleRow.valueHtml.replace(/<[^>]*>/g, "").trim() : titleText;
+
+    guides.push({
+      name,
+      details,
+      heading,
+      table
+    });
+  });
+
+  guides.forEach((guide) => {
+    const item = document.createElement("li");
+    item.className = "guide-list__item";
+    item.dataset.name = guide.name.toLowerCase();
+
+    const details = document.createElement("details");
+    const summary = document.createElement("summary");
+    summary.className = "guide-list__summary ds-paragraph";
+    summary.setAttribute("data-size", "md");
+    summary.textContent = guide.name;
+
+    const meta = document.createElement("div");
+    meta.className = "guide-list__meta ds-paragraph";
+    meta.setAttribute("data-size", "sm");
+    meta.textContent = `ID: ${guide.heading.id || "ukjent"}`;
+
+    const dl = document.createElement("dl");
+    dl.className = "guide-list__details";
+
+    guide.details.forEach((detail) => {
+      const row = document.createElement("div");
+      row.className = "guide-list__details-row";
+
+      const dt = document.createElement("dt");
+      dt.textContent = detail.label;
+
+      const dd = document.createElement("dd");
+      dd.innerHTML = detail.valueHtml;
+
+      row.appendChild(dt);
+      row.appendChild(dd);
+      dl.appendChild(row);
+    });
+
+    details.appendChild(summary);
+    details.appendChild(meta);
+    details.appendChild(dl);
+    item.appendChild(details);
+    list.appendChild(item);
+
+    guide.heading.hidden = true;
+    guide.table.hidden = true;
+  });
+
+  function updateResults() {
+    const query = input.value.trim().toLowerCase();
+    let visible = 0;
+    Array.from(list.children).forEach((item) => {
+      const matches = !query || item.dataset.name.includes(query);
+      item.hidden = !matches;
+      if (matches) visible += 1;
+    });
+    resultCount.textContent = String(visible);
+  }
+
+  input.addEventListener("input", updateResults);
+  updateResults();
+});
 </script>
 
 *URI*: <https://pvl.arkitektum.no/katalog/plan/veiledere>
