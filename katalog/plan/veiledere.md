@@ -143,8 +143,14 @@ HTML-visning av [RDF Turtle ressurs](veiledere.ttl) / Arkitektum AS
 
 <ul class="guide-list" id="guide-list" aria-live="polite"></ul>
 
+<script src="https://unpkg.com/n3@1.17.2/browser/n3.min.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
+  const list = document.getElementById("guide-list");
+  const input = document.getElementById("guide-search-input");
+  const resultCount = document.getElementById("guide-result-count");
+  if (!list || !input || !resultCount) return;
+
   const themeMap = {
     "arealstrategi": ["fagtema/arealstrategi/"],
     "arkitektur-byggeskikk-estetikk": ["fagtema/arkitektur/"],
@@ -168,22 +174,84 @@ document.addEventListener("DOMContentLoaded", function () {
     "vei-og-bane": ["fagtema/vei_bane/"]
   };
 
-  const counts = new Map();
-  const rows = document.querySelectorAll("table tr");
-  rows.forEach((row) => {
-    const cells = row.querySelectorAll("td");
-    if (cells.length < 3) return;
-    const prop = cells[1].textContent.trim();
-    if (prop !== "dcterms:subject") return;
-    const link = cells[2].querySelector("a");
-    const url = link ? link.getAttribute("href") : cells[2].textContent.trim();
-    if (!url) return;
+  const predicateLabels = {
+    "http://purl.org/dc/terms/title": "navn",
+    "http://purl.org/dc/terms/identifier": "URI",
+    "http://purl.org/dc/terms/subject": "emne",
+    "http://www.w3.org/2002/07/owl#sameAs": "samme som",
+    "http://xmlns.com/foaf/0.1/homepage": "hjemmeside",
+    "http://purl.org/ontology/bibo/uri": "URI",
+    "http://purl.org/dc/terms/references": "referanser"
+  };
 
-    Object.entries(themeMap).forEach(([tema, patterns]) => {
-      if (patterns.some((pattern) => url.includes(pattern))) {
-        counts.set(tema, (counts.get(tema) || 0) + 1);
+  const ignoreTitles = new Set([
+    "Direktoratet for byggkvalitet",
+    "Veiledere for arealplanlegging"
+  ]);
+
+  const rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  const biboManual = "http://purl.org/ontology/bibo/Manual";
+  const ttlUrl = "veiledere.ttl";
+
+  let ttlText = "";
+  try {
+    const response = await fetch(ttlUrl, { cache: "no-store" });
+    if (!response.ok) throw new Error("Kunne ikke hente TTL.");
+    ttlText = await response.text();
+  } catch (error) {
+    list.innerHTML = "<li class=\"guide-list__item\">Klarte ikke aa laste veiledere.ttl.</li>";
+    return;
+  }
+
+  const parser = new N3.Parser();
+  const quads = parser.parse(ttlText);
+  const manualSubjects = new Set();
+
+  quads.forEach((quad) => {
+    if (quad.predicate.value === rdfType && quad.object.value === biboManual) {
+      manualSubjects.add(quad.subject.value);
+    }
+  });
+
+  const guidesBySubject = new Map();
+  const counts = new Map();
+
+  quads.forEach((quad) => {
+    const subject = quad.subject.value;
+    if (!manualSubjects.has(subject)) return;
+
+    if (!guidesBySubject.has(subject)) {
+      guidesBySubject.set(subject, {
+        id: subject,
+        name: "",
+        subjects: [],
+        values: new Map()
+      });
+    }
+
+    const guide = guidesBySubject.get(subject);
+    const predicate = quad.predicate.value;
+    const object = quad.object.value;
+
+    if (predicate === "http://purl.org/dc/terms/title" && !guide.name) {
+      guide.name = object;
+    }
+
+    if (predicate === "http://purl.org/dc/terms/subject") {
+      guide.subjects.push(object);
+      Object.entries(themeMap).forEach(([tema, patterns]) => {
+        if (patterns.some((pattern) => object.includes(pattern))) {
+          counts.set(tema, (counts.get(tema) || 0) + 1);
+        }
+      });
+    }
+
+    if (predicateLabels[predicate]) {
+      if (!guide.values.has(predicate)) {
+        guide.values.set(predicate, []);
       }
-    });
+      guide.values.get(predicate).push(object);
+    }
   });
 
   document.querySelectorAll(".topic-nav__count").forEach((el) => {
@@ -191,53 +259,49 @@ document.addEventListener("DOMContentLoaded", function () {
     const count = counts.get(tema) || 0;
     el.textContent = `(${count})`;
   });
-});
-</script>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const list = document.getElementById("guide-list");
-  const input = document.getElementById("guide-search-input");
-  const resultCount = document.getElementById("guide-result-count");
-  if (!list || !input || !resultCount) return;
+  const guides = Array.from(guidesBySubject.values())
+    .filter((guide) => guide.name)
+    .sort((a, b) => a.name.localeCompare(b.name, "no"));
 
-  const ignoreTitles = new Set([
-    "Direktoratet for byggkvalitet",
-    "Veiledere for arealplanlegging"
-  ]);
+  const manualIds = new Set(
+    guides.map((guide) => {
+      const parts = guide.id.split("#");
+      return parts.length > 1 ? parts[1] : "";
+    }).filter(Boolean)
+  );
 
-  const guides = [];
-  const headings = Array.from(document.querySelectorAll("h2"));
-  headings.forEach((heading) => {
+  Array.from(document.querySelectorAll("h2")).forEach((heading) => {
     const titleText = heading.textContent.trim();
     if (!titleText || ignoreTitles.has(titleText)) return;
+    if (!manualIds.has(heading.id)) return;
 
     let table = heading.nextElementSibling;
     while (table && table.tagName !== "TABLE" && table.tagName !== "H2") {
       table = table.nextElementSibling;
     }
-    if (!table || table.tagName !== "TABLE") return;
-
-    const rows = Array.from(table.querySelectorAll("tr"));
-    const details = rows
-      .map((row) => row.querySelectorAll("td"))
-      .filter((cells) => cells.length >= 3)
-      .map((cells) => ({
-        label: cells[0].textContent.trim(),
-        valueHtml: cells[2].innerHTML.trim()
-      }))
-      .filter((item) => item.label && item.valueHtml);
-
-    const titleRow = details.find((item) => item.label.toLowerCase() === "navn");
-    const name = titleRow ? titleRow.valueHtml.replace(/<[^>]*>/g, "").trim() : titleText;
-
-    guides.push({
-      name,
-      details,
-      heading,
-      table
-    });
+    heading.hidden = true;
+    if (table && table.tagName === "TABLE") {
+      table.hidden = true;
+    }
   });
+
+  function addValues(dd, values) {
+    values.forEach((value, index) => {
+      if (index > 0) {
+        dd.appendChild(document.createTextNode(", "));
+      }
+      if (/^https?:\/\//i.test(value)) {
+        const link = document.createElement("a");
+        link.href = value;
+        link.textContent = value;
+        link.rel = "noopener";
+        dd.appendChild(link);
+      } else {
+        dd.appendChild(document.createTextNode(value));
+      }
+    });
+  }
 
   guides.forEach((guide) => {
     const item = document.createElement("li");
@@ -253,20 +317,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const meta = document.createElement("div");
     meta.className = "guide-list__meta ds-paragraph";
     meta.setAttribute("data-size", "sm");
-    meta.textContent = `ID: ${guide.heading.id || "ukjent"}`;
+    const shortId = guide.id.includes("#") ? guide.id.split("#")[1] : guide.id;
+    meta.textContent = `ID: ${shortId || "ukjent"}`;
 
     const dl = document.createElement("dl");
     dl.className = "guide-list__details";
 
-    guide.details.forEach((detail) => {
+    Object.entries(predicateLabels).forEach(([predicate, label]) => {
+      const values = guide.values.get(predicate);
+      if (!values || values.length === 0) return;
+
       const row = document.createElement("div");
       row.className = "guide-list__details-row";
 
       const dt = document.createElement("dt");
-      dt.textContent = detail.label;
+      dt.textContent = label;
 
       const dd = document.createElement("dd");
-      dd.innerHTML = detail.valueHtml;
+      addValues(dd, values);
 
       row.appendChild(dt);
       row.appendChild(dd);
@@ -279,8 +347,6 @@ document.addEventListener("DOMContentLoaded", function () {
     item.appendChild(details);
     list.appendChild(item);
 
-    guide.heading.hidden = true;
-    guide.table.hidden = true;
   });
 
   function updateResults() {
