@@ -14,6 +14,122 @@ HTML-visning av [RDF Turtle ressurs](veiledere.ttl) / Arkitektum AS
 
 <h2 id="">Veiledere for arealplanlegging</h2>
 
+<style>
+.topic-nav {
+  border: 1px solid #cdd6e0;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  background: #f7f9fc;
+  max-width: 480px;
+}
+.topic-nav__title {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+.topic-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.topic-nav__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.topic-nav__item input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.15rem;
+}
+.topic-nav__count {
+  margin-left: auto;
+  color: #465a6e;
+  font-weight: 400;
+  white-space: nowrap;
+}
+</style>
+
+<section class="topic-nav" aria-labelledby="planfaglige-tema">
+  <h3 class="topic-nav__title ds-heading" data-size="xs" id="planfaglige-tema">Planfaglige tema</h3>
+  <ul class="topic-nav__list">
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="arealstrategi">Arealstrategi<span class="topic-nav__count" data-tema="arealstrategi"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="arkitektur-byggeskikk-estetikk">Arkitektur, byggeskikk og estetikk<span class="topic-nav__count" data-tema="arkitektur-byggeskikk-estetikk"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="barn-og-unge">Barn og unge<span class="topic-nav__count" data-tema="barn-og-unge"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="bolig-og-nabolag">Bolig og nabolag<span class="topic-nav__count" data-tema="bolig-og-nabolag"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="by-og-stedsutvikling">By- og stedsutvikling<span class="topic-nav__count" data-tema="by-og-stedsutvikling"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="byrom-og-moteplasser">Byrom og møteplasser<span class="topic-nav__count" data-tema="byrom-og-moteplasser"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="baerekraftsmalene-i-planlegging">Bærekraftsmålene i planlegging<span class="topic-nav__count" data-tema="baerekraftsmalene-i-planlegging"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="folkehelse">Folkehelse<span class="topic-nav__count" data-tema="folkehelse"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="fortetting-transformasjon-knutepunktutvikling">Fortetting, transformasjon og knutepunktutvikling<span class="topic-nav__count" data-tema="fortetting-transformasjon-knutepunktutvikling"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="friluftsliv">Friluftsliv<span class="topic-nav__count" data-tema="friluftsliv"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="gronnstruktur">Grønnstruktur<span class="topic-nav__count" data-tema="gronnstruktur"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="klima-reduksjon-av-utslipp">Klima: reduksjon av utslipp<span class="topic-nav__count" data-tema="klima-reduksjon-av-utslipp"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="klimatilpasning">Klimatilpasning<span class="topic-nav__count" data-tema="klimatilpasning"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="kulturminner-og-kulturmiljo">Kulturminner og kulturmiljø<span class="topic-nav__count" data-tema="kulturminner-og-kulturmiljo"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="landskap">Landskap<span class="topic-nav__count" data-tema="landskap"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="naturfare">Naturfare<span class="topic-nav__count" data-tema="naturfare"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="samfunnssikkerhet-ros">Samfunnssikkerhet og ROS i planleggingen<span class="topic-nav__count" data-tema="samfunnssikkerhet-ros"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="samordnet-areal-og-transportplanlegging">Samordnet areal- og transportplanlegging<span class="topic-nav__count" data-tema="samordnet-areal-og-transportplanlegging"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="sykkel">Sykkel<span class="topic-nav__count" data-tema="sykkel"></span></label></li>
+    <li><label class="topic-nav__item ds-label"><input class="ds-input" type="checkbox" name="tema" value="vei-og-bane">Vei og bane<span class="topic-nav__count" data-tema="vei-og-bane"></span></label></li>
+  </ul>
+</section>
+
+<script>
+(function () {
+  const themeMap = {
+    "arealstrategi": ["fagtema/arealstrategi/"],
+    "arkitektur-byggeskikk-estetikk": ["fagtema/arkitektur/"],
+    "barn-og-unge": ["fagtema/barn_unge/"],
+    "bolig-og-nabolag": ["fagtema/bolig_nabolag/"],
+    "by-og-stedsutvikling": ["fagtema/sentrumsutvikling/"],
+    "byrom-og-moteplasser": ["fagtema/byrom_moeteplasser/"],
+    "baerekraftsmalene-i-planlegging": ["fagtema/baerekraft_i_planlegging/"],
+    "folkehelse": ["fagtema/folkehelse/"],
+    "fortetting-transformasjon-knutepunktutvikling": ["fagtema/fortetting_transformasjon_knutepunktutvikling/"],
+    "friluftsliv": ["fagtema/friluftsliv/"],
+    "gronnstruktur": ["fagtema/gronnstruktur/"],
+    "klima-reduksjon-av-utslipp": ["fagtema/reduksjon_klimagassutslipp/"],
+    "klimatilpasning": ["fagtema/klimatilpasning/"],
+    "kulturminner-og-kulturmiljo": ["fagtema/kulturminner_kulturmiljo/"],
+    "landskap": ["fagtema/landskap/"],
+    "naturfare": ["fagtema/naturfare/"],
+    "samfunnssikkerhet-ros": ["fagtema/samfunnssikkerhet_ROS/"],
+    "samordnet-areal-og-transportplanlegging": ["fagtema/samordnet_areal_og_transportplanlegging/"],
+    "sykkel": ["fagtema/sykkel/"],
+    "vei-og-bane": ["fagtema/vei_bane/"]
+  };
+
+  const counts = new Map();
+  const rows = document.querySelectorAll("table tr");
+  rows.forEach((row) => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length < 3) return;
+    const prop = cells[1].textContent.trim();
+    if (prop !== "dcterms:subject") return;
+    const link = cells[2].querySelector("a");
+    const url = link ? link.getAttribute("href") : cells[2].textContent.trim();
+    if (!url) return;
+
+    Object.entries(themeMap).forEach(([tema, patterns]) => {
+      if (patterns.some((pattern) => url.includes(pattern))) {
+        counts.set(tema, (counts.get(tema) || 0) + 1);
+      }
+    });
+  });
+
+  document.querySelectorAll(".topic-nav__count").forEach((el) => {
+    const tema = el.getAttribute("data-tema");
+    const count = counts.get(tema) || 0;
+    el.textContent = `(${count})`;
+  });
+})();
+</script>
+
 *URI*: <https://pvl.arkitektum.no/katalog/plan/veiledere>
 
 | Egenskapsnavn (norsk) | *EgenskapsURI* (kortform) | *Verdi* |

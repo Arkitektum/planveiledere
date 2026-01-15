@@ -39,7 +39,10 @@ jobs:
           find katalog/ -name "*.md" | while read file; do
             out_file="public/${file%.md}.html"
             mkdir -p "$(dirname "$out_file")"
-            pandoc -s "$file" -o "$out_file" --css https://unpkg.com/sakura.css/css/sakura.css
+            pandoc -s "$file" -o "$out_file" \
+              --css https://altinncdn.no/fonts/inter/v4.1/inter.css \
+              --css https://cdn.jsdelivr.net/npm/@digdir/designsystemet-css@1.9.0/dist/theme/designsystemet.css \
+              --css https://cdn.jsdelivr.net/npm/@digdir/designsystemet-css@1.9.0/dist/src/index.css
           done
 
           # Lag en enkel index.html med lenker til alle .html-filer
